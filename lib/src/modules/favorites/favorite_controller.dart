@@ -13,23 +13,18 @@ class FavoriteController with MessageStateMixin {
   void removeFavoriteDishe(Dishes value) {
     _isLoading.value = false;
 
+    //Percorro a lista de pratos e removo o prato que foi desfavoritado
+    //E ao voltar para a tela anterior, eu reenvio a lista de pratos atualizada no PopScope
     final list = dishes.map((e) {
       if (e.recipeId == value.recipeId) {
         return e.copyWith(isFavorite: !e.isFavorite);
       }
       return e;
     }).toList();
+
     list.removeWhere((element) => element.recipeId == value.recipeId);
     dishe.value = list;
     _isLoading.value = true;
   }
-
-  // void removeFavoriteDishe(Dishes value) {
-  //   _isLoading.value = false;
-  //   final index = dishes.indexWhere((element) => element.recipeId == id);
-  //   //dishes[index].isFavorite = !dishes[index].isFavorite;
-  //   dishes.removeWhere((element) => element.recipeId == id);
-  //   dishe.value = dishes;
-  //   _isLoading.value = true;
-  // }
+  
 }

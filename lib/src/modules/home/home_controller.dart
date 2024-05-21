@@ -37,7 +37,11 @@ class HomeController with MessageStateMixin {
         return e;
       }).toList();
 
+      //Atribuo a lista de pratos novamente
       _dishes.value = list;
+      //Salvo localmente para ao reabrir o app trazer ja carregado, poderia ter usado SQFLite ou Hive para armazenar tbm
+      //mas como é um app simples, optei por usar o LocalStorage
+      //A tela da uma piscada por conta do await do localStorage, pois ele da um tempo siginificativo e cai no loading
       await LocalStorageDatabase().setKey('lastDishe', dishes);
       _isLoading.value = false; 
     }
@@ -45,6 +49,7 @@ class HomeController with MessageStateMixin {
 
   Future<void> setFavoriteDishe(Dishes value) async {
     _isLoading.value = true;
+    //Percorro a lista de pratos e adiciono ou removo o prato favorito a partir dos 2 cliques
     final list = dishes.map((e) {
       if (e.recipeId == value.recipeId) {
         return e.copyWith(isFavorite: !e.isFavorite);
@@ -58,11 +63,15 @@ class HomeController with MessageStateMixin {
   }
 
   List<Dishes> getFavorites() {
+    //Retorno lista de pratos favoritos para enviar a tela de favortitos
     return dishes.where((element) => element.isFavorite).toList();
   }
 
   void search(String value) {
     _isLoading.value = true;
+    //Filtro a lista de receitas a partir do texto digitado
+    //removido o text que fazia o filtro, pois não era necessario
+    //porem vou deixar para mostrar que é possivel fazer o filtro
     final shides = dishes.where((element) {
       return element.title.toLowerCase().contains(value.toLowerCase());
     }).toList();
@@ -73,6 +82,7 @@ class HomeController with MessageStateMixin {
 
   Future<void> getDishes(String food) async {
     _isLoading.value = true;
+    //Busco os pratos a partir do selecionado e atribuo a lista de pratos
     final result = await _repository.getDishes(food);
     switch (result) {
       case Left():
@@ -86,6 +96,7 @@ class HomeController with MessageStateMixin {
   }
 
   Future<void> getDishesDatabase() async {
+    //Busco os pratos salvos localmente e atribuo a lista de pratos ao entrar no app
     _isLoading.value = true;
     final result = await LocalStorageDatabase().getKey('lastDishe');
     if (result != null) {

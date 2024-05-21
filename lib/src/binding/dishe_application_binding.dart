@@ -8,6 +8,5 @@ class DisheaApplicationBinding extends ApplicationBindings {
   List<Bind<Object>> bindings() => [
     Bind.lazySingleton<RestClient>((i) => RestClient(Env.backendBaseUrl)),
   ];
-
-
+  
 }

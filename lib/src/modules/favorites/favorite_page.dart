@@ -16,7 +16,6 @@ class FavoritePage extends StatefulWidget {
 }
 
 class _FavoritePageState extends State<FavoritePage> with MessageViewMixin {
-  final TextEditingController _searchDisheEC = TextEditingController();
   final controller = Injector.get<FavoriteController>();
 
   @override
@@ -26,13 +25,8 @@ class _FavoritePageState extends State<FavoritePage> with MessageViewMixin {
   }
 
   @override
-  void dispose() {
-    _searchDisheEC.dispose();
-    super.dispose();
-  }
-
-  @override
   void didChangeDependencies() {
+    //Passo uma lista de pratos favoritos via argumento e atribuo a lista de pratos do controller
     var args = ModalRoute.of(context)!.settings.arguments as List<Dishes>;
     controller.dishe.value = args;
     super.didChangeDependencies();
@@ -46,9 +40,7 @@ class _FavoritePageState extends State<FavoritePage> with MessageViewMixin {
         if (didPop) {
           return;
         }
-        setState(() {
-          
-        });
+        setState(() { });
         Navigator.pop(context, controller.dishes);
       },
       child: Scaffold(
