@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> with MessageViewMixin {
   void getDishes() async {
     var lastDishes = await LocalStorageDatabase().getKey('lastDishe');
     if (lastDishes != null) {
-      await controller.getDishesDatabase();
+      await controller.getDishesLocalStorage();
     }
     _searchFoodEC.text = 'Clique para selecionar o nome do prato';
   }
@@ -51,7 +51,7 @@ class _HomePageState extends State<HomePage> with MessageViewMixin {
         ));
     if (food != null) {
       _searchFoodEC.text = food;
-      await controller.getDishes(food);
+      await controller.getInitialDishes(food);
     }
   }
 

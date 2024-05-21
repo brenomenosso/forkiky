@@ -11,7 +11,7 @@ class ListEmpityCard extends StatelessWidget {
         Icon(Icons.restaurant_menu, size: 100, color: Colors.grey),
         SizedBox(height: 10),
         Text(
-          'Nenhum prato encontrado',
+          'Nenhuma receita encontrado',
           style: TextStyle(
             color: Colors.grey,
             fontSize: 20,

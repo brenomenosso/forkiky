@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class CardDishe extends StatefulWidget {
@@ -44,7 +45,7 @@ class _CardDisheState extends State<CardDishe> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.network(widget.imageUrl, fit: BoxFit.cover, width: double.infinity, height: 200),
+          CachedNetworkImage(imageUrl: widget.imageUrl, fit: BoxFit.cover, width: double.infinity, height: 200),
           Padding(
             padding: const EdgeInsets.all(8),
             child: Row(

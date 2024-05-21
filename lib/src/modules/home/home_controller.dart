@@ -12,24 +12,26 @@ class HomeController with MessageStateMixin {
   final DisheRepository _repository;
 
   final _dishes = signal(<Dishes>[]);
+  final _dishesFavorites = signal(<Dishes>[]);
   final _isLoading = signal(false);
   final _isLogged = signal(false);
 
   bool get loading => _isLoading();
   List<Dishes> get dishes => _dishes();
+  List<Dishes> get dishesFavorites => _dishesFavorites();
 
-  Future<void> getAllDishes([List<Dishes>? favorites, bool? removeFavorites]) async {
+  Future<void> getAllDishes(
+      [List<Dishes>? favorites, bool? removeFavorites]) async {
     _isLoading.value = true;
 
     if (favorites != null && removeFavorites == true) {
-
-      //Pegar a lista de pratos e remover todos os favoritos
+      //Pega a lista de pratos e remover todos os favoritos
       final listRemoveFavorite = dishes.map((e) {
         return e.copyWith(isFavorite: false);
       }).toList();
 
-     //Pego a lista que retorno da tela anterior e se tiver algum prato que é favorito ainda, eu coloco como favorito
-     final list = listRemoveFavorite.map((e) {
+      //Pega a lista que retorno da tela anterior e se tiver algum prato que é favorito ainda, eu coloco como favorito
+      final list = listRemoveFavorite.map((e) {
         final index = favorites.indexWhere((element) => element.recipeId == e.recipeId);
         if (index != -1) {
           return dishes[index].copyWith(isFavorite: true);
@@ -39,11 +41,12 @@ class HomeController with MessageStateMixin {
 
       //Atribuo a lista de pratos novamente
       _dishes.value = list;
+      _dishesFavorites.value = getFavorites();
       //Salvo localmente para ao reabrir o app trazer ja carregado, poderia ter usado SQFLite ou Hive para armazenar tbm
       //mas como é um app simples, optei por usar o LocalStorage
       //A tela da uma piscada por conta do await do localStorage, pois ele da um tempo siginificativo e cai no loading
-      await LocalStorageDatabase().setKey('lastDishe', dishes);
-      _isLoading.value = false; 
+      await LocalStorageDatabase().setKey('lastDishe', dishesFavorites);
+      _isLoading.value = false;
     }
   }
 
@@ -52,19 +55,36 @@ class HomeController with MessageStateMixin {
     //Percorro a lista de pratos e adiciono ou removo o prato favorito a partir dos 2 cliques
     final list = dishes.map((e) {
       if (e.recipeId == value.recipeId) {
+        if (e.isFavorite == true) {
+          dishesFavorites.removeWhere((element) => element.recipeId == e.recipeId);
+        }
         return e.copyWith(isFavorite: !e.isFavorite);
       }
       return e;
     }).toList();
 
     _dishes.value = list;
-    await LocalStorageDatabase().setKey('lastDishe', dishes);
+    _dishesFavorites.value = getFavorites();
+    await LocalStorageDatabase().setKey('lastDishe', dishesFavorites);
     _isLoading.value = false;
   }
 
   List<Dishes> getFavorites() {
     //Retorno lista de pratos favoritos para enviar a tela de favortitos
-    return dishes.where((element) => element.isFavorite).toList();
+    //Ao reabrir o app
+    if (dishes.isEmpty) {
+      return dishesFavorites;
+    }
+    //Pego a nova lista de receitas e verifico se tem algum prato favorito ja salvo na lista de favoritos
+    //Caso tiver eu nao adiciono novamente, evitando duplicidade
+    var list = dishes.where((element) => element.isFavorite).toList();
+    for (var element in list) {
+      final index = dishesFavorites.indexWhere((e) => e.recipeId == element.recipeId);
+      if (index == -1) {
+        dishesFavorites.add(element);
+      }
+    }
+    return dishesFavorites;
   }
 
   void search(String value) {
@@ -80,7 +100,7 @@ class HomeController with MessageStateMixin {
     _isLoading.value = false;
   }
 
-  Future<void> getDishes(String food) async {
+  Future<void> getInitialDishes(String food) async {
     _isLoading.value = true;
     //Busco os pratos a partir do selecionado e atribuo a lista de pratos
     final result = await _repository.getDishes(food);
@@ -88,20 +108,34 @@ class HomeController with MessageStateMixin {
       case Left():
         showError('Erro ao buscar os pratos');
       case Right(value: List<Dishes> dishe):
-        dishes.addAll(dishe);
-        await LocalStorageDatabase().setKey('lastDishe', dishes);
+        //Valido para que em uma nova busca, limpe a lista de pratos e evite lsita infinita
+        if (dishes.isNotEmpty) {
+          dishes.clear();
+        }
+        setFavoriteAfterLogin(dishe);
         _isLogged.value = true;
         _isLoading.value = false;
     }
   }
 
-  Future<void> getDishesDatabase() async {
+  setFavoriteAfterLogin(List<Dishes> recipes) {
+   var result = recipes.map((element) {
+      final index = dishesFavorites.indexWhere((e) => e.recipeId == element.recipeId);
+      if (index != -1) {
+        return recipes[index].copyWith(isFavorite: true);
+      }
+      return element;
+    }).toList();
+    dishes.addAll(result);
+  }
+
+  Future<void> getDishesLocalStorage() async {
     //Busco os pratos salvos localmente e atribuo a lista de pratos ao entrar no app
     _isLoading.value = true;
     final result = await LocalStorageDatabase().getKey('lastDishe');
     if (result != null) {
       for (var element in result) {
-        dishes.add(Dishes.fromJson(element));
+        dishesFavorites.add(Dishes.fromJson(element));
       }
       _isLogged.value = true;
     }
