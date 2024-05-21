@@ -73,7 +73,7 @@ class _FavoritePageState extends State<FavoritePage> with MessageViewMixin {
                                   return GestureDetector(
                                     onDoubleTap: () => controller
                                         .removeFavoriteDishe(
-                                          dishe.recipeId),
+                                          dishe),
                                     child: CardDishe(
                                       publisher: dishe.publisher,
                                       title: dishe.title,

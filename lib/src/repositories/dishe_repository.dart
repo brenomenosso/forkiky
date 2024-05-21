@@ -4,6 +4,6 @@ import 'package:forkify_app/src/model/dishe.dart';
 
 abstract interface class DisheRepository {
 
-  Future<Either<AuthException,List<Dishes>>> getDishes();
+  Future<Either<AuthException,List<Dishes>>> getDishes(String food);
 
 }

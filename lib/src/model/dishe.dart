@@ -7,7 +7,7 @@ class Dishes {
   final String imageUrl;
   final double socialRank;
   final String publisherUrl;
-  bool isFavorite = false;
+  final bool isFavorite;
 
   Dishes({
      required this.publisher,
@@ -17,7 +17,7 @@ class Dishes {
      required this.imageUrl,
      required this.socialRank,
      required this.publisherUrl,
-    this.isFavorite = false,
+     required this.isFavorite,
   });
 
   factory Dishes.fromJson(Map<String, dynamic> json) {
@@ -29,6 +29,7 @@ class Dishes {
       imageUrl: json['image_url'],
       socialRank: json['social_rank'] is int ? json['social_rank'].toDouble() : json['social_rank'] is double ? json['social_rank'] : json['social_rank'],
       publisherUrl: json['publisher_url'],
+      isFavorite: json['isFavorite'] ?? false,
     );
   }
 
@@ -41,6 +42,7 @@ class Dishes {
       'image_url': imageUrl,
       'social_rank': socialRank,
       'publisher_url': publisherUrl,
+      'isFavorite': isFavorite,
     };
   }
 

@@ -3,6 +3,9 @@ import 'package:flutter_getit/flutter_getit.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:forkify_app/src/components/card_dishe.dart';
 import 'package:forkify_app/src/components/dots_loadings.dart';
+import 'package:forkify_app/src/components/food_select.dart';
+import 'package:forkify_app/src/components/list_empity.dart';
+import 'package:forkify_app/src/database/localstorage_database.dart';
 import 'package:forkify_app/src/helpers/messages.dart';
 import 'package:forkify_app/src/model/dishe.dart';
 import 'package:forkify_app/src/modules/home/home_controller.dart';
@@ -16,7 +19,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with MessageViewMixin {
-  final TextEditingController _searchDisheEC = TextEditingController();
+  final TextEditingController _searchFoodEC = TextEditingController();
   final controller = Injector.get<HomeController>();
 
   @override
@@ -28,12 +31,28 @@ class _HomePageState extends State<HomePage> with MessageViewMixin {
 
   @override
   void dispose() {
-    _searchDisheEC.dispose();
+    _searchFoodEC.dispose();
     super.dispose();
   }
 
   void getDishes() async {
-    await controller.getDishes();
+    var lastDishes = await LocalStorageDatabase().getKey('lastDishe');
+    if (lastDishes != null) {
+      await controller.getDishesDatabase();
+    }
+    _searchFoodEC.text = 'Clique para selecionar o nome do prato';
+  }
+
+  Future _getFood(BuildContext context) async {
+    String? food = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const FoodSelected(),
+        ));
+    if (food != null) {
+      _searchFoodEC.text = food;
+      await controller.getDishes(food);
+    }
   }
 
   @override
@@ -51,46 +70,50 @@ class _HomePageState extends State<HomePage> with MessageViewMixin {
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 TextFormField(
-                  controller: _searchDisheEC,
+                  controller: _searchFoodEC,
                   decoration: InputDecoration(
-                    labelText: 'Digite o nome do prato',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onChanged: (value) => controller.search(value),
+                  readOnly: true,
+                  onTap: () => _getFood(context),
                 ),
                 const SizedBox(height: 10),
                 Watch((_) {
                   return controller.loading
-                      ? Expanded(
-                          child: ListView.builder(
-                              itemCount: controller.dishesFiltered.length,
-                              itemBuilder: (context, index) {
-                                var dishe = controller.dishesFiltered[index];
-                                return GestureDetector(
-                                  onDoubleTap: () => controller
-                                      .setFavoriteDishe(dishe.recipeId),
-                                  child: CardDishe(
-                                    publisher: dishe.publisher,
-                                    title: dishe.title,
-                                    sourceUrl: dishe.sourceUrl,
-                                    recipeId: dishe.recipeId,
-                                    imageUrl: dishe.imageUrl,
-                                    isFavorite: dishe.isFavorite,
-                                  ),
-                                );
-                              }),
-                        )
-                      : const Expanded(
+                      ? const Expanded(
                           child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisSize: MainAxisSize.max,
                               children: [
-                                LoadingDots(title: 'Carregando pratos...'),
+                                LoadingDots(title: 'Carregando pratos...')
                               ]),
-                        );
+                        )
+                      : controller.dishes.isEmpty
+                          ? const Expanded(
+                              child: Center(child: ListEmpityCard()))
+                          : Expanded(
+                              child: ListView.builder(
+                                itemCount: controller.dishes.length,
+                                itemBuilder: (context, index) {
+                                  var dishe = controller.dishes[index];
+                                  return GestureDetector(
+                                    onDoubleTap: () => controller
+                                        .setFavoriteDishe(dishe),
+                                    child: CardDishe(
+                                      publisher: dishe.publisher,
+                                      title: dishe.title,
+                                      sourceUrl: dishe.sourceUrl,
+                                      recipeId: dishe.recipeId,
+                                      imageUrl: dishe.imageUrl,
+                                      isFavorite: dishe.isFavorite,
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
                 }),
               ],
             ),
@@ -103,14 +126,13 @@ class _HomePageState extends State<HomePage> with MessageViewMixin {
             SpeedDialChild(
                 onTap: () async {
                   var favorites = controller.getFavorites();
-                  await Navigator.of(context).pushNamed(
-                      '/home/favorites',
-                      arguments: favorites). then((value) async {
-                         var favorites = value as List<Dishes>;
-                         controller.getAllDishes(favorites, true);
-                      });
-                  
-                },  
+                  await Navigator.of(context)
+                      .pushNamed('/home/favorites', arguments: favorites)
+                      .then((value) async {
+                    var favorites = value as List<Dishes>;
+                    await controller.getAllDishes(favorites, true);
+                  });
+                },
                 label: 'Favoritos',
                 child: const Icon(Icons.favorite)),
             SpeedDialChild(

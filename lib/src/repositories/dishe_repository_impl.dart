@@ -12,9 +12,9 @@ class DisheRepositoryImpl implements DisheRepository {
   DisheRepositoryImpl({required this.restClient});
 
   @override
-  Future<Either<AuthException, List<Dishes>>> getDishes() async {
+  Future<Either<AuthException, List<Dishes>>> getDishes(String food) async {
     try {
-      final response = await restClient.unAuth.get('/search', queryParameters: {'q': 'pizza'});
+      final response = await restClient.unAuth.get('/search', queryParameters: {'q': food});
       final List<Dishes> dishes = (response.data['recipes'] as List).map((e) => Dishes.fromJson(e)).toList();
       return Right(dishes);
     } on DioException catch (e) {

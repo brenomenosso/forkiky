@@ -1,3 +1,4 @@
+import 'package:forkify_app/src/database/localstorage_database.dart';
 import 'package:forkify_app/src/fp/either.dart';
 import 'package:forkify_app/src/helpers/messages.dart';
 import 'package:forkify_app/src/model/dishe.dart';
@@ -11,63 +12,88 @@ class HomeController with MessageStateMixin {
   final DisheRepository _repository;
 
   final _dishes = signal(<Dishes>[]);
-  final _dishesFiltered = signal(<Dishes>[]);
   final _isLoading = signal(false);
   final _isLogged = signal(false);
 
   bool get loading => _isLoading();
   List<Dishes> get dishes => _dishes();
-  List<Dishes> get dishesFiltered => _dishesFiltered();
 
-  void getAllDishes([List<Dishes>? newList, bool? removeFavorites]) {
-    _isLoading.value = false;
-    if (newList != null && removeFavorites == true) {
-      for (var element in dishes) {
-        element.isFavorite = false;
-      }
-      newList.map((e) {
-        final index = dishes.indexWhere((element) => element.recipeId == e.recipeId);
-        dishes[index].isFavorite = true;
+  Future<void> getAllDishes([List<Dishes>? favorites, bool? removeFavorites]) async {
+    _isLoading.value = true;
+
+    if (favorites != null && removeFavorites == true) {
+
+      //Pegar a lista de pratos e remover todos os favoritos
+      final listRemoveFavorite = dishes.map((e) {
+        return e.copyWith(isFavorite: false);
       }).toList();
-      _dishesFiltered.value = dishes;
-      _isLoading.value = true;
-    }
-    _dishesFiltered.value = dishes;
-    _isLoading.value = true;
-  } 
 
-  void setFavoriteDishe(String id) {
-    _isLoading.value = false;
-    final index = dishes.indexWhere((element) => element.recipeId == id);
-    dishes[index].isFavorite = !dishes[index].isFavorite;
-    _dishes.value = dishes;
+     //Pego a lista que retorno da tela anterior e se tiver algum prato que é favorito ainda, eu coloco como favorito
+     final list = listRemoveFavorite.map((e) {
+        final index = favorites.indexWhere((element) => element.recipeId == e.recipeId);
+        if (index != -1) {
+          return dishes[index].copyWith(isFavorite: true);
+        }
+        return e;
+      }).toList();
+
+      _dishes.value = list;
+      await LocalStorageDatabase().setKey('lastDishe', dishes);
+      _isLoading.value = false; 
+    }
+  }
+
+  Future<void> setFavoriteDishe(Dishes value) async {
     _isLoading.value = true;
+    final list = dishes.map((e) {
+      if (e.recipeId == value.recipeId) {
+        return e.copyWith(isFavorite: !e.isFavorite);
+      }
+      return e;
+    }).toList();
+
+    _dishes.value = list;
+    await LocalStorageDatabase().setKey('lastDishe', dishes);
+    _isLoading.value = false;
   }
 
   List<Dishes> getFavorites() {
-     return dishesFiltered.where((element) => element.isFavorite).toList();
+    return dishes.where((element) => element.isFavorite).toList();
   }
 
   void search(String value) {
-     _isLoading.value = false;
+    _isLoading.value = true;
     final shides = dishes.where((element) {
       return element.title.toLowerCase().contains(value.toLowerCase());
     }).toList();
 
-    _dishesFiltered.value = shides;
-    _isLoading.value = true;
+    _dishes.value = shides;
+    _isLoading.value = false;
   }
 
-  Future<void> getDishes() async {
-    final result = await _repository.getDishes();
+  Future<void> getDishes(String food) async {
+    _isLoading.value = true;
+    final result = await _repository.getDishes(food);
     switch (result) {
       case Left():
         showError('Erro ao buscar os pratos');
       case Right(value: List<Dishes> dishe):
         dishes.addAll(dishe);
-        dishesFiltered.addAll(dishe);
+        await LocalStorageDatabase().setKey('lastDishe', dishes);
         _isLogged.value = true;
-        _isLoading.value = true;
+        _isLoading.value = false;
     }
+  }
+
+  Future<void> getDishesDatabase() async {
+    _isLoading.value = true;
+    final result = await LocalStorageDatabase().getKey('lastDishe');
+    if (result != null) {
+      for (var element in result) {
+        dishes.add(Dishes.fromJson(element));
+      }
+      _isLogged.value = true;
+    }
+    _isLoading.value = false;
   }
 }

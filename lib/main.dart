@@ -6,6 +6,7 @@ import 'package:forkify_app/src/modules/home/home_module.dart';
 import 'package:forkify_app/src/pages/splash_page.dart';
 
 void main() {
+   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 

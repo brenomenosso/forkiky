@@ -6,7 +6,6 @@ import 'package:forkify_app/src/modules/home/home_controller.dart';
 import 'package:forkify_app/src/modules/home/home_page.dart';
 import 'package:forkify_app/src/repositories/dishe_repository.dart';
 import 'package:forkify_app/src/repositories/dishe_repository_impl.dart';
-import 'package:forkify_app/src/services/dishe_service.dart';
 
 class HomeModule extends FlutterGetItModule{
 
@@ -15,7 +14,6 @@ class HomeModule extends FlutterGetItModule{
     Bind.lazySingleton<DisheRepository>((i) => DisheRepositoryImpl(restClient: i())),
     Bind.lazySingleton((i) => HomeController(repository: i())),
     Bind.lazySingleton((i) => FavoriteController()),
-    Bind.lazySingleton((i) => DisheService(homeController: i(), favoriteController: i())),
   ];
 
   @override
