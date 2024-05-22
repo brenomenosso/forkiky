@@ -24,6 +24,11 @@ class HomeController with MessageStateMixin {
       [List<Dishes>? favorites, bool? removeFavorites]) async {
     _isLoading.value = true;
 
+    if (favorites?.isEmpty == true) {
+      dishesFavorites.clear();
+      await LocalStorageDatabase().setKey('lastDishe', dishesFavorites);
+    }
+
     if (favorites != null && removeFavorites == true) {
       //Pega a lista de pratos e remover todos os favoritos
       final listRemoveFavorite = dishes.map((e) {

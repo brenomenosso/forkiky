@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 
 class CardDishe extends StatefulWidget {
 
-  String publisher;
-  String title;
-  String sourceUrl;
-  String recipeId;
-  String imageUrl;
-  bool isFavorite;
+  final String publisher;
+  final String title;
+  final String sourceUrl;
+  final String recipeId;
+  final String imageUrl;
+  final bool isFavorite;
 
-  CardDishe({super.key, 
+  const CardDishe({super.key, 
     required this.publisher,
     required this.title,
     required this.sourceUrl,
