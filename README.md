@@ -1,16 +1,15 @@
 # forkify_app
 
-A new Flutter project.
+Project test for Alfa
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+Flutter 3.16.9 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision 41456452f2 (4 months ago) • 2024-01-25 10:06:23 -0800
+Engine • revision f40e976bed
+Tools • Dart 3.2.6 • DevTools 2.28.5
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Ao rodar projeto selecionar no run and debug a opção 'forkify_app DEV'
+- Rodar flutter pub get para pegar dependências
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
