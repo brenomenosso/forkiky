@@ -119,13 +119,11 @@ class _HomePageState extends State<HomePage> with MessageViewMixin {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          final navigator = Navigator.of(context);
           var favorites = controller.getFavorites();
-          await Navigator.of(context)
-              .pushNamed('/home/favorites', arguments: favorites)
-              .then((value) async {
-            var favorites = value as List<Dishes>;
-            await controller.getAllDishes(favorites, true);
-          });
+          var value = await navigator
+              .pushNamed('/home/favorites', arguments: favorites);
+            await controller.getAllDishes(value as List<Dishes>, true);
         },
         child: const Icon(Icons.favorite),
       ),

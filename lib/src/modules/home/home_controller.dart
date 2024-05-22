@@ -24,28 +24,50 @@ class HomeController with MessageStateMixin {
       [List<Dishes>? favorites, bool? removeFavorites]) async {
     _isLoading.value = true;
 
+    List<Dishes> newDishesFavorites = [...dishesFavorites];
+
+    //Valido para quando entrar no app 1x, remover loading de transição entre as telas de favoritos e home
+    if (favorites?.isEmpty == true && dishes.isEmpty == true) {
+      _isLoading.value = false;
+      return;
+    }
+
+    //Valido para quando retornar da tela de favoritos e a lista estiver vazio, limpo a lista de favoritos
     if (favorites?.isEmpty == true) {
       dishesFavorites.clear();
+      newDishesFavorites.clear();
       await LocalStorageDatabase().setKey('lastDishe', dishesFavorites);
     }
 
+    //Para tratar quando volta da tela de favoritos
     if (favorites != null && removeFavorites == true) {
-      //Pega a lista de pratos e remover todos os favoritos
+
+      //Pega a lista de receitas e remover todos os favoritos
       final listRemoveFavorite = dishes.map((e) {
         return e.copyWith(isFavorite: false);
       }).toList();
 
-      //Pega a lista que retorno da tela anterior e se tiver algum prato que é favorito ainda, eu coloco como favorito
+      //Pega a lista que retorna da tela de favoritos e se tiver alguma receita que é favorito do prato selecionado, eu coloco como favorito
       final list = listRemoveFavorite.map((e) {
         final index = favorites.indexWhere((element) => element.recipeId == e.recipeId);
         if (index != -1) {
-          return dishes[index].copyWith(isFavorite: true);
+          return e.copyWith(isFavorite: true);
         }
         return e;
       }).toList();
 
+      // Crio uma lista alternativa da favorites e nela removo as receitas que não estão mais na lista de favoritos
+      for (var savedFavorites in dishesFavorites) {
+        final index = favorites.indexWhere((e) => e.recipeId == savedFavorites.recipeId);
+        if (index == -1) {
+          newDishesFavorites.remove(savedFavorites);
+        }
+      }
+
       //Atribuo a lista de pratos novamente
       _dishes.value = list;
+      dishesFavorites.clear();
+      _dishesFavorites.value = newDishesFavorites;
       _dishesFavorites.value = getFavorites();
       //Salvo localmente para ao reabrir o app trazer ja carregado, poderia ter usado SQFLite ou Hive para armazenar tbm
       //mas como é um app simples, optei por usar o LocalStorage
@@ -81,7 +103,7 @@ class HomeController with MessageStateMixin {
       return dishesFavorites;
     }
     //Pego a nova lista de receitas e verifico se tem algum prato favorito ja salvo na lista de favoritos
-    //Caso tiver eu nao adiciono novamente, evitando duplicidade
+    //Caso tiver, eu nao adiciono novamente, evitando duplicidade
     var list = dishes.where((element) => element.isFavorite).toList();
     for (var element in list) {
       final index = dishesFavorites.indexWhere((e) => e.recipeId == element.recipeId);
@@ -124,10 +146,12 @@ class HomeController with MessageStateMixin {
   }
 
   setFavoriteAfterLogin(List<Dishes> recipes) {
+    //Valido ao buscar nova lista de receitas, se tem algum prato favorito
+    //Caso tenha, eu atribuo favorito para o mesmo na lista de receitas e ja listo marcado como favorito
    var result = recipes.map((element) {
       final index = dishesFavorites.indexWhere((e) => e.recipeId == element.recipeId);
       if (index != -1) {
-        return recipes[index].copyWith(isFavorite: true);
+        return element.copyWith(isFavorite: true);
       }
       return element;
     }).toList();
@@ -135,7 +159,7 @@ class HomeController with MessageStateMixin {
   }
 
   Future<void> getDishesLocalStorage() async {
-    //Busco os pratos salvos localmente e atribuo a lista de pratos ao entrar no app
+    //Busco as receitas favoritadas localmente e atribuo a lista de favoritos ao entrar no app
     _isLoading.value = true;
     final result = await LocalStorageDatabase().getKey('lastDishe');
     if (result != null) {

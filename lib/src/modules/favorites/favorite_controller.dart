@@ -12,7 +12,6 @@ class FavoriteController with MessageStateMixin {
 
   void removeFavoriteDishe(Dishes value) {
     _isLoading.value = false;
-
     //Percorro a lista de pratos e removo o prato que foi desfavoritado
     //E ao voltar para a tela anterior, eu reenvio a lista de pratos atualizada no PopScope
     final list = dishes.map((e) {
