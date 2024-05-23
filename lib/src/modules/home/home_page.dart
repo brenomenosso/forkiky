@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_getit/flutter_getit.dart';
 import 'package:forkify_app/src/components/card_dishe.dart';
 import 'package:forkify_app/src/components/dots_loadings.dart';
-import 'package:forkify_app/src/components/food_select.dart';
+import 'package:forkify_app/src/components/food_selected_list.dart';
 import 'package:forkify_app/src/components/list_empity.dart';
 import 'package:forkify_app/src/database/localstorage_database.dart';
 import 'package:forkify_app/src/helpers/messages.dart';
@@ -46,7 +46,7 @@ class _HomePageState extends State<HomePage> with MessageViewMixin {
     String? food = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const FoodSelected(),
+          builder: (context) => const FoodSelectedList(),
         ));
     if (food != null) {
       _searchFoodEC.text = food;

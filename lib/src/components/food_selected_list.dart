@@ -27,25 +27,17 @@ class _FoodSelectedListState extends State<FoodSelectedList> with MessageViewMix
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                  ListView.builder(
-                    itemCount: FoodTypes.types.length,
-                    itemBuilder: (context, index) {
-                      final food = FoodTypes.types[index];
-                      return CardModalOption(
-                        option: food,
-                        onTap: () {
-                          _closeModal(context, food);
-                        },
-                      );
-                    },
-                  )
-              ],
-            ),
+          child: ListView.builder(
+            itemCount: FoodTypes.types.length,
+            itemBuilder: (context, index) {
+              final food = FoodTypes.types[index];
+              return CardModalOption(
+                option: food,
+                onTap: () {
+                  _closeModal(context, food);
+                },
+              );
+            },
           ),
         ),
       ),
